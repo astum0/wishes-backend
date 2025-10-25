@@ -2,30 +2,26 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateWishDto } from './dto/create-wish.dto';
 import { UpdateWishDto } from './dto/update-wish.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Priority } from 'src/generated/enums';
 
 @Injectable()
 export class WishesService {
   constructor(private readonly prisma: PrismaService){}
 
-  async create(data: CreateWishDto) {
+  async create(userId: number, dto: CreateWishDto) {
     const wish = await this.prisma.wish.create({
-      data: {
-        ...data,
-        priority: data.priority ?? Priority.LOW,
-      }
+      data: { ...dto, userId}
     });
     return wish
   }
 
   async findAll() {
-    const wish = await this.prisma.wish.findAll();
+    const wish = await this.prisma.wish.findMany();
     if (!wish) throw new NotFoundException ("Желаний не найдено")
     return wish
   }
 
   async findOne(id: number) {
-    const wish = await this.prisma.wish.findOne({
+    const wish = await this.prisma.wish.findUnique({
       where: {id}
     });
     if (!wish) throw new NotFoundException ('Желание №${id} не найдено')
@@ -41,10 +37,10 @@ export class WishesService {
   }
 
   async remove(id: number) {
-    const wish = await this.prisma.wish.remove({
+    const wish = await this.prisma.wish.findUnique({
       where: {id}
     });
     if (!wish) throw new NotFoundException ('Желание №${id} не может быть удалено потому что его не существует')
-    return this.prisma.wish.remove({where: {id}});
+    return this.prisma.wish.delete({where: {id}});
   }
 }
