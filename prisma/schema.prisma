@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Priority {
+  LOW
+  MEDIUM 
+  HIGH 
+}
+
+model User {
+  id        Int      @id  @default(autoincrement())
+  createdAt DateTime @default(now()) 
+  updatedAt DateTime @updatedAt
+
+  name         String 
+  email        String @unique 
+  password     String 
+  refreshToken String? 
+
+  wishes Wish[]
+
+  @@map("users")
+}
+
+model Wish {
+  id          Int  @id @default(autoincrement()) 
+  title       String 
+  description String 
+  link        String 
+  isCompleted Boolean @default(false)
+
+  priority Priority   @default(LOW)
+
+  userId  Int 
+  user    User @relation(fields: [userId], references: [id])
+
+  @@map("wishes")
+}
